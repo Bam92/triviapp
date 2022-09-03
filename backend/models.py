@@ -2,6 +2,8 @@ import os
 from sqlalchemy import Column, String, Integer, create_engine
 from flask_sqlalchemy import SQLAlchemy
 import json
+from dataclasses import dataclass
+# from flask_serialize import FlaskSerialize 
 
 database_name = 'trivia'
 database_path = "postgresql://{}:{}@{}/{}".format(
@@ -9,6 +11,8 @@ database_path = "postgresql://{}:{}@{}/{}".format(
 )
 
 db = SQLAlchemy()
+
+# fs_mixin = FlaskSerialize(db)
 
 """
 setup_db(app)
@@ -64,11 +68,18 @@ class Question(db.Model):
 Category
 
 """
+@dataclass
 class Category(db.Model):
     __tablename__ = 'categories'
 
+    id: int
+    type: str
+
     id = Column(Integer, primary_key=True)
     type = Column(String)
+
+    # serialize fields
+    __fs_create_fields__ = __fs_update_fields__ = ['type']
 
     def __init__(self, type):
         self.type = type

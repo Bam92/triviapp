@@ -65,13 +65,13 @@ class QuestionView extends Component {
 
   getByCategory = (id) => {
     $.ajax({
-      url: `/categories/${id}/questions`, //TODO: update request URL
+      url:  `http://localhost:4000/categories`,
       type: 'GET',
       success: (result) => {
         this.setState({
           questions: result.questions,
-          totalQuestions: result.total_questions,
-          currentCategory: result.current_category,
+          // totalQuestions: result.total_questions,
+          // currentCategory: result.current_category,
         });
         return;
       },
