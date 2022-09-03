@@ -20,15 +20,20 @@ def create_app(test_config=None):
         response.headers.add('Access-Control-Allow-Headers', 'GET, POST, PATCH, DELETE, OPTIONS')
         return response
 
-    @app.route('/categories')
-    def get_categories():
+    # utility function
+    def categories():
         categories = Category.query.all()
 
-        return jsonify ({
-            "categories": {
+        return {
                 category.id: category.type
                 for category in categories
             }
+
+    @app.route('/categories')
+    def get_categories():
+
+        return jsonify ({
+            "categories": categories()
         })
 
     """
@@ -47,16 +52,21 @@ def create_app(test_config=None):
     def get_questions():
         questions = Question.query.all()
 
+        list_questions = [
+                {
+                    'id': q.id,
+                    'question': q.question,
+                    'answer': q.answer,
+                    'difficulty': q.difficulty,
+                    'category': q.category
+                }
+                for q in questions
+            ]
+
         return jsonify ({
-            "questions": {
-                    q.id: q.question
-                    for q in questions
-                },
+            "questions": list_questions,
             "totalQuestions": len(questions),
-            "categories": {
-                category.id: category.type
-                for category in Category.query.all()
-            },
+            "categories": categories(),
             "currentCategory": "History"
         })
 
