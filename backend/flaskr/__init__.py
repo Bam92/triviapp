@@ -33,6 +33,7 @@ def create_app(test_config=None):
     def get_categories():
 
         return jsonify ({
+            'success': True,
             "categories": categories()
         })
 
@@ -50,21 +51,18 @@ def create_app(test_config=None):
     """
     @app.route('/questions')
     def get_questions():
+        # Implement pagination
+        page = request.args.get('page', 1, type=int)
+        start = (page - 1) * 10
+        end = start + 10
+
         questions = Question.query.all()
 
-        list_questions = [
-                {
-                    'id': q.id,
-                    'question': q.question,
-                    'answer': q.answer,
-                    'difficulty': q.difficulty,
-                    'category': q.category
-                }
-                for q in questions
-            ]
+        questions_formatted = [question.format() for question in questions]
 
         return jsonify ({
-            "questions": list_questions,
+            'success': True,
+            "questions": questions_formatted[start:end],
             "totalQuestions": len(questions),
             "categories": categories(),
             "currentCategory": "History"
