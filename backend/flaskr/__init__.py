@@ -1,7 +1,9 @@
+from crypt import methods
+import json
 import os
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 import random
 
 from models import setup_db, Question, Category
@@ -11,13 +13,21 @@ QUESTIONS_PER_PAGE = 10
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
+    # app.config['CORS_HEADERS'] = 'Content-Type'
+
+    # cors = CORS(app, resources={})
+
+
     setup_db(app)
     CORS(app)
 
     @app.after_request
     def after_request(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
         response.headers.add('Access-Control-Allow-Headers', 'GET, POST, PATCH, DELETE, OPTIONS')
+        # response.headers.add('Access-Control-Allow-Credentials', 'True')
+
         return response
 
     # utility function
@@ -38,12 +48,12 @@ def create_app(test_config=None):
         })
 
     @app.route('/questions')
+    # @cross_origin(supports_credentials=True)
     def get_questions():
         # Implement pagination
         page = request.args.get('page', 1, type=int)
         start = (page - 1) * 10
         end = start + 10
-
         questions = Question.query.all()
 
         questions_formatted = [question.format() for question in questions]
@@ -74,7 +84,27 @@ def create_app(test_config=None):
     the form will clear and the question will appear at the end of the last page
     of the questions list in the "List" tab.
     """
+    @app.route('/questions', methods=["POST"])
+    def post_question():
+        question=request.json['question']
+        answer=request.json['answer']
+        category=request.json['category']
+        difficulty=request.json['difficulty']
 
+        try:
+            question = Question(question, answer, category, difficulty)
+            question.insert()
+
+            selection = Question.query.order_by(Question.id).all()
+
+            return jsonify ({
+                'success': True,
+                'created': question.id,
+                'total_questions': len(Question.query.all())
+            })
+
+        except:
+            abort(422)
     """
     @TODO:
     Create a POST endpoint to get questions based on a search term.
