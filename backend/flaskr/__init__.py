@@ -3,7 +3,7 @@ import json
 import os
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 import random
 
 from models import setup_db, Question, Category
@@ -13,10 +13,6 @@ QUESTIONS_PER_PAGE = 10
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
-    # app.config['CORS_HEADERS'] = 'Content-Type'
-
-    # cors = CORS(app, resources={})
-
 
     setup_db(app)
     CORS(app)
@@ -26,7 +22,6 @@ def create_app(test_config=None):
         response.headers.add('Access-Control-Allow-Origin', '*')
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
         response.headers.add('Access-Control-Allow-Headers', 'GET, POST, PATCH, DELETE, OPTIONS')
-        # response.headers.add('Access-Control-Allow-Credentials', 'True')
 
         return response
 
@@ -66,24 +61,23 @@ def create_app(test_config=None):
             "currentCategory": "History"
         })
 
-    """
-    @TODO:
-    Create an endpoint to DELETE question using a question ID.
+    @app.route('/questions/<id>', methods=["DELETE"])
+    def delete_question(id):
 
-    TEST: When you click the trash icon next to a question, the question will be removed.
-    This removal will persist in the database and when you refresh the page.
-    """
+        try:
+            question = Question.query.get(id)
+            question.delete()
+            print(question)
 
-    """
-    @TODO:
-    Create an endpoint to POST a new question,
-    which will require the question and answer text,
-    category, and difficulty score.
+            return jsonify ({
+                'success': True,
+                'deleted': question.id,
+                'total_questions': len(Question.query.all())
+            })
 
-    TEST: When you submit a question on the "Add" tab,
-    the form will clear and the question will appear at the end of the last page
-    of the questions list in the "List" tab.
-    """
+        except: 
+            abort(422)
+
     @app.route('/questions', methods=["POST"])
     def post_question():
         question=request.json['question']
@@ -105,6 +99,7 @@ def create_app(test_config=None):
 
         except:
             abort(422)
+    
     """
     @TODO:
     Create a POST endpoint to get questions based on a search term.
@@ -150,7 +145,7 @@ def create_app(test_config=None):
     #         "message": "Not found"
     #         }), 404
 
-    # @app.errorhandler()
+    # @app.errorhandler(422)
     # def unprocessable(error):
     #     return jsonify({
     #     "success": False, 
