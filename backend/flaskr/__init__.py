@@ -132,26 +132,21 @@ def create_app(test_config=None):
     and shown whether they were correct or not.
     """
 
-    """
-    @TODO:
-    Create error handlers for all expected errors
-    including 404 and 422.
-    """
-    # @app.errorhandler(404)
-    # def not_found(error):
-    #     return jsonify({
-    #         "success": False, 
-    #         "error": 404,
-    #         "message": "Not found"
-    #         }), 404
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({
+            "success": False, 
+            "error": 404,
+            "message": "Not found"
+            }), 404
 
-    # @app.errorhandler(422)
-    # def unprocessable(error):
-    #     return jsonify({
-    #     "success": False, 
-    #     "error": 422,
-    #     "message": "unprocessable"
-    #     }), 422
+    @app.errorhandler(422)
+    def unprocessable(error):
+        return jsonify({
+        "success": False, 
+        "error": 422,
+        "message": "unprocessable"
+        }), 422
 
     if __name__ == "__main__":
         app.run(host='0.0.0.0')
