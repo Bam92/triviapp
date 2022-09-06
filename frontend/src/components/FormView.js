@@ -8,8 +8,8 @@ class FormView extends Component {
     this.state = {
       question: '',
       answer: '',
-      difficulty: 1,
-      category: 1,
+      difficulty: '',
+      category: '',
       categories: {},
     };
   }
