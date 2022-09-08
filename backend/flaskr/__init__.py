@@ -1,6 +1,5 @@
 from crypt import methods
 import json
-import os
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -88,8 +87,6 @@ def create_app(test_config=None):
             question = Question(question, answer, category, difficulty)
             question.insert()
 
-            selection = Question.query.order_by(Question.id).all()
-
             return jsonify ({
                 'success': True,
                 'created': question.id,
@@ -99,16 +96,26 @@ def create_app(test_config=None):
         except:
             abort(422)
     
-    """
-    @TODO:
-    Create a POST endpoint to get questions based on a search term.
-    It should return any questions for whom the search term
-    is a substring of the question.
+    @app.route('/questions/search', methods=['POST'])
+    def search_questions():
+        # Implement pagination
+        page = request.args.get('page', 1, type=int)
+        start = (page - 1) * 10
+        end = start + 10
+        search_term = request.json['search_term']
 
-    TEST: Search by any phrase. The questions list will update to include
-    only question that include that string within their question.
-    Try using the word "title" to start.
-    """
+        questions = Question.query.filter(Question.question.ilike("%" + search_term + "%")).all()
+
+        questions_formatted = [question.format() for question in questions]
+
+        print(questions_formatted)
+        return jsonify ({
+            "success": True,
+            "questions": questions_formatted[start:end],
+            "totalQuestions": len(questions),
+            "categories": categories(),
+            "currentCategory": "History"
+        })
 
     @app.route('/categories/<id>/questions', methods=["GET"])
     def get_by_category(id):

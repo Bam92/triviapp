@@ -3,21 +3,19 @@ from sqlalchemy import Column, String, Integer, create_engine
 from flask_sqlalchemy import SQLAlchemy
 import json
 from dataclasses import dataclass
-# from flask_serialize import FlaskSerialize 
 
-database_name = 'trivia'
+database_name = os.getenv("DB_NAME")
+database_user = os.getenv("DB_USER")
+database_password = os.getenv("DB_PASSWORD")
+database_host = os.getenv("DB_HOST")
+
+
 database_path = "postgresql://{}:{}@{}/{}".format(
-    "postgres", "postgres@psql", "localhost:5432", database_name
+    database_user, database_password, database_host, database_name
 )
 
 db = SQLAlchemy()
 
-# fs_mixin = FlaskSerialize(db)
-
-"""
-setup_db(app)
-    binds a flask application and a SQLAlchemy service
-"""
 def setup_db(app, database_path=database_path):
     app.config["SQLALCHEMY_DATABASE_URI"] = database_path
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -72,14 +70,8 @@ Category
 class Category(db.Model):
     __tablename__ = 'categories'
 
-    id: int
-    type: str
-
     id = Column(Integer, primary_key=True)
     type = Column(String)
-
-    # serialize fields
-    __fs_create_fields__ = __fs_update_fields__ = ['type']
 
     def __init__(self, type):
         self.type = type
