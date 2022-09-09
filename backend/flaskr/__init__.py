@@ -3,7 +3,7 @@ import json
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-import random
+import random as r
 
 from models import setup_db, Question, Category
 
@@ -65,7 +65,6 @@ def create_app(test_config=None):
         try:
             question = Question.query.get(id)
             question.delete()
-            print(question)
 
             return jsonify ({
                 'success': True,
@@ -108,7 +107,6 @@ def create_app(test_config=None):
 
         questions_formatted = [question.format() for question in questions]
 
-        print(questions_formatted)
         return jsonify ({
             "success": True,
             "questions": questions_formatted[start:end],
@@ -135,17 +133,28 @@ def create_app(test_config=None):
         except: 
             abort(422)
 
-    """
-    @TODO:
-    Create a POST endpoint to get questions to play the quiz.
-    This endpoint should take category and previous question parameters
-    and return a random questions within the given category,
-    if provided, and that is not one of the previous questions.
+    @app.route('/quizzes', methods=['POST'])
+    def play_quiz():
+        prev_questions = request.json['previous_questions']
+        quiz_category = request.json['quiz_category']['id']
+        
+        # generate number: 1 to len(questions)
+        max_limit = len(Question.query.all())
+        question_id = r.randint(1, max_limit)
 
-    TEST: In the "Play" tab, after a user selects "All" or a category,
-    one question at a time is displayed, the user is allowed to answer
-    and shown whether they were correct or not.
-    """
+        try:
+            question = Question.query.filter(Question.id == question_id).one() \
+                if quiz_category == 0 \
+                else Question.query.filter(Question.id == question_id, Question.category == quiz_category).one()
+
+            question_formatted = question.format()
+
+            return jsonify ({
+                "success": True,
+                "question": question_formatted,
+            })
+        except:
+            abort(422)
 
     @app.errorhandler(404)
     def not_found(error):
