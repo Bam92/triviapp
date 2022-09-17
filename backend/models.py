@@ -9,6 +9,7 @@ database_user = os.getenv("DB_USER")
 database_password = os.getenv("DB_PASSWORD")
 database_host = os.getenv("DB_HOST")
 
+# print('db = ' + database_name)
 
 database_path = "postgresql://{}:{}@{}/{}".format(
     database_user, database_password, database_host, database_name
