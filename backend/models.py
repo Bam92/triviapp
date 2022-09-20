@@ -9,7 +9,6 @@ database_user = os.getenv("DB_USER")
 database_password = os.getenv("DB_PASSWORD")
 database_host = os.getenv("DB_HOST")
 
-# print('db = ' + database_name)
 
 database_path = "postgresql://{}:{}@{}/{}".format(
     database_user, database_password, database_host, database_name
@@ -22,7 +21,7 @@ def setup_db(app, database_path=database_path):
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.app = app
     db.init_app(app)
-    db.create_all()
+    # db.create_all()
 
 """
 Question
