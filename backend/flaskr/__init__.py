@@ -1,3 +1,4 @@
+from ast import Try
 from crypt import methods
 import json
 from flask import Flask, request, abort, jsonify
@@ -43,27 +44,40 @@ def create_app(test_config=None):
 
     @app.route('/questions')
     def get_questions():
-        # Implement pagination
-        page = request.args.get('page', 1, type=int)
-        start = (page - 1) * 10
-        end = start + 10
-        questions = Question.query.all()
+        try:
+            # Implement pagination
+            page = request.args.get('page', 1, type=int)
+            start = (page - 1) * 10
+            end = start + 10
 
-        questions_formatted = [question.format() for question in questions]
+            questions = Question.query.all()
 
-        return jsonify ({
-            'success': True,
-            "questions": questions_formatted[start:end],
-            "totalQuestions": len(questions),
-            "categories": categories(),
-            "currentCategory": "History"
-        })
+            questions_formatted = [question.format() for question in questions]
 
-    @app.route('/questions/<id>', methods=["DELETE"])
+            if (len(questions_formatted[start:end]) == 0):
+                abort(404)
+
+            return jsonify ({
+                'success': True,
+                "questions": questions_formatted[start:end],
+                "totalQuestions": len(questions),
+                "categories": categories(),
+                "currentCategory": "History"
+            })
+        except Exception as e:
+            print(e)
+            abort(400)
+
+    @app.route('/questions/<int:id>', methods=["DELETE"])
     def delete_question(id):
 
         try:
             question = Question.query.get(id)
+
+            # if the question is not found
+            if question is None:
+                abort(404)
+
             question.delete()
 
             return jsonify ({
@@ -72,8 +86,9 @@ def create_app(test_config=None):
                 'total_questions': len(Question.query.all())
             })
 
-        except: 
-            abort(422)
+        except Exception as e: 
+            print(e)
+            abort(404)
 
     @app.route('/questions', methods=["POST"])
     def post_question():
@@ -92,7 +107,8 @@ def create_app(test_config=None):
                 'total_questions': len(Question.query.all())
             })
 
-        except:
+        except Exception as e:
+            print(e)
             abort(422)
     
     @app.route('/questions/search', methods=['POST'])
@@ -105,17 +121,21 @@ def create_app(test_config=None):
 
         questions = Question.query.filter(Question.question.ilike("%" + search_term + "%")).all()
 
-        questions_formatted = [question.format() for question in questions]
+        if questions:
 
-        return jsonify ({
-            "success": True,
-            "questions": questions_formatted[start:end],
-            "totalQuestions": len(questions),
-            "categories": categories(),
-            "currentCategory": "History"
-        })
+            questions_formatted = [question.format() for question in questions]
 
-    @app.route('/categories/<id>/questions', methods=["GET"])
+            return jsonify ({
+                "success": True,
+                "questions": questions_formatted[start:end],
+                "totalQuestions": len(questions),
+                "categories": categories(),
+                "currentCategory": "History"
+            })
+        else:
+            abort(404)
+
+    @app.route('/categories/<int:id>/questions', methods=["GET"])
     def get_by_category(id):
 
         try:
@@ -131,7 +151,7 @@ def create_app(test_config=None):
             })
 
         except: 
-            abort(422)
+            abort(404)
 
     @app.route('/quizzes', methods=['POST'])
     def play_quiz():
@@ -156,6 +176,16 @@ def create_app(test_config=None):
         except:
             abort(422)
 
+############# Error handlers #############
+
+    @app.errorhandler(422)
+    def bad_request(error):
+        return jsonify({
+            "success": False, 
+            "error": 400,
+            "message": "Bad request"
+        }), 400
+
     @app.errorhandler(404)
     def not_found(error):
         return jsonify({
@@ -167,10 +197,18 @@ def create_app(test_config=None):
     @app.errorhandler(422)
     def unprocessable(error):
         return jsonify({
-        "success": False, 
-        "error": 422,
-        "message": "unprocessable"
+            "success": False, 
+            "error": 422,
+            "message": "Unprocessable"
         }), 422
+
+    @app.errorhandler(500)
+    def server_error(error):
+        return jsonify({
+            "success": False, 
+            "error": 500,
+            "message": "Internal server error"
+        }), 500
 
     if __name__ == "__main__":
         app.run(host='0.0.0.0')
